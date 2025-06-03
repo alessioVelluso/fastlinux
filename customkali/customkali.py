@@ -15,7 +15,7 @@ class KaliCustomizer:
 
     def download_wallpaper(self):
         try:
-            local_path = os.path.join('~/Pictures', 'wallpaper.png')
+            local_path = '~/Pictures/wallpaper.png'
 
             # Scarica l'immagine con timeout di 15 secondi
             urlretrieve(self.image_url, local_path)
@@ -25,8 +25,7 @@ class KaliCustomizer:
 
     def user_panel_config(self):
         try:
-            user_config_path = os.path.expanduser("~/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml")
-            shutil.copy("./panelconfig.xml", user_config_path)
+            shutil.copy("./panelconfig.xml", "~/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml")
             os.system("xfce4-panel -r")
         except Exception as e:
             print(e)
