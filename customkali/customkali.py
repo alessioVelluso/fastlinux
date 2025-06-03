@@ -7,6 +7,7 @@ from urllib.request import urlretrieve
 
 class KaliCustomizer:
     image_url = "https://raw.githubusercontent.com/dorianpro/kaliwallpapers/master/kali-linux-wallpaper-v4.png"
+    username = ""
 
     def __init__(self):
         self.download_wallpaper()
@@ -15,7 +16,7 @@ class KaliCustomizer:
 
     def download_wallpaper(self):
         try:
-            local_path = os.path.join(os.path.expanduser("~"), 'Pictures/wallpaper.png')
+            local_path =  f'/home/{self.username}/Pictures/wallpaper.png'
 
             # Scarica l'immagine con timeout di 15 secondi
             urlretrieve(self.image_url, local_path)
@@ -25,7 +26,7 @@ class KaliCustomizer:
 
     def user_panel_config(self):
         try:
-            local_path = os.path.join(os.path.expanduser("~"), '.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml')
+            local_path =  f'/home/{self.username}/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml'
             shutil.copy("./panelconfig.xml", local_path)
             os.system("xfce4-panel -r")
         except Exception as e:
