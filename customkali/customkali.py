@@ -26,6 +26,7 @@ class KaliCustomizer:
 
     def user_panel_config(self):
         try:
+            os.system("xfce4-panel — quit")
             local_path =  f'/home/{self.username}/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml'
             shutil.copy("./panelconfig.xml", local_path)
             os.system("xfce4-panel -r")
