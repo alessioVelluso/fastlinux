@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 import os
 import subprocess
-import tempfile
 import shutil
 from urllib.request import urlretrieve
 
@@ -10,51 +9,21 @@ class KaliCustomizer:
     image_url = "https://raw.githubusercontent.com/dorianpro/kaliwallpapers/master/kali-linux-wallpaper-v4.png"
 
     def __init__(self):
-        self.change_wallpaper()
+        self.download_wallpaper()
         self.user_panel_config()
         self.set_keyboard_layout()
 
-    def _detect_desktop_environment(self):
-        # Rileva l'ambiente desktop in uso
-        if os.environ.get('DESKTOP_SESSION') == 'xfce': return 'xfce'
-        elif os.environ.get('DESKTOP_SESSION') == 'gnome': return 'gnome'
-        return 'unknown'
-
-    def change_wallpaper(self):
+    def download_wallpaper(self):
         try:
-            # Cambia lo sfondo usando un URL remoto
-            de = self._detect_desktop_environment()
-
-            # Crea una cartella temporanea dedicata
-            temp_dir = os.path.join(tempfile.gettempdir(), "kali_customizer_wallpapers")
-            os.makedirs(temp_dir, exist_ok=True)
-
-            # Estrae il nome file dall'URL
-            filename = os.path.basename(self.image_url.split("?")[0])
-            local_path = os.path.join(temp_dir, filename)
-
+            local_path = os.path.join('~/Pictures', 'wallpaper.png')
 
             # Scarica l'immagine con timeout di 15 secondi
             urlretrieve(self.image_url, local_path)
             print(f"Immagine scaricata in: {local_path}")
-
-            # Applica lo sfondo
-            if de == 'xfce':
-                subprocess.run([
-                    "xfconf-query", "-c", "xfce4-desktop",
-                    "-p", "/backdrop/screen0/monitor0/workspace0/last-image",
-                    "-s", local_path
-                ], check=True)
-            elif de == 'gnome':
-                subprocess.run([
-                    "gsettings", "set", "org.gnome.desktop.background",
-                    "picture-uri", f"file://{local_path}"
-                ], check=True)
-
         except Exception as e:
             print(e)
 
-    def user_panel_config():
+    def user_panel_config(self):
         try:
             user_config_path = os.path.expanduser("~/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml")
             shutil.copy("./panelconfig.xml", user_config_path)
