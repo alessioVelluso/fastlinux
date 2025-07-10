@@ -1,0 +1,176 @@
+services:
+  # NATS
+  nats:
+    image: nats:latest
+    container_name: NATS
+    restart: always
+    ports:
+      - 4222:4222
+
+  # BITWARDEN
+  bitwarden:
+    image: vaultwarden/server:latest
+    container_name: BITWARDEN
+    restart: always
+    ports:
+      - 443:80
+    environment:
+      - ROCKET_TLS={certs=/certificates/cert.crt,key=/certificates/cert.key}
+    volumes:
+      - /Volumes/bitwarden/certificates:/certificates
+      - ./Volumes/bitwarden/data:/data
+
+  # BOOKSTACK
+  # admin@admin.com with the password of password
+  bookstack:
+    image: lscr.io/linuxserver/bookstack:latest
+    container_name: BOOKSTACK
+    restart: always
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/London
+      - APP_URL=http://127.0.0.1:6875
+      - APP_KEY=base64:yourtoken=
+      - DB_HOST=WORKBERRY_MARIADB
+      - DB_PORT=3306
+      - DB_USERNAME=alessio
+      - DB_PASSWORD=BookStackFirstPass12345!!
+      - DB_DATABASE=bookstackapp
+    ports:
+      - 6875:80
+    depends_on:
+      - maria_db
+    volumes:
+      - ./Volumes/bookstack:/config
+
+  # MARIA DB
+  maria_db:
+    image: lscr.io/linuxserver/mariadb:latest
+    container_name: MARIADB
+    restart: always
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/London
+      - MYSQL_ROOT_PASSWORD=MariaDbRootPass12345!!
+      - MYSQL_DATABASE=bookstackapp
+      - MYSQL_USER=alessio
+      - MYSQL_PASSWORD=MariaDbRootPass12345!!
+    volumes:
+      - ./Volumes/mariadb:/config
+
+  # MINIO
+  minio:
+    container_name: MINIO
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    restart: always
+    ports:
+      - 9200:9000
+      - 9201:9001
+    environment:
+      - MINIO_ROOT_USER=alessio
+      - MINIO_ROOT_PASSWORD=MinioPass12345!!
+      - MINIO_DEFAULT_BUCKETS=default
+    volumes:
+      - ./Volumes/minio:/data
+
+  # POSTGRES
+  postgres:
+    container_name: POSTGRES
+    image: postgres:latest
+    restart: always
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=alessio
+      - POSTGRES_PASSWORD=PostgresPass12345!!
+      - POSTGRES_DB=raspberry
+    volumes:
+      - ./Volumes/postgres:/var/lib/postgresql/data
+
+
+  # INFLUX
+  influx:
+    container_name: INFLUX
+    image: influxdb:latest
+    restart: always
+    ports:
+      - 8086:8086
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=alessio
+      - DOCKER_INFLUXDB_INIT_PASSWORD=InfluxPass12345!!
+      - DOCKER_INFLUXDB_INIT_ORG=alessio
+      - DOCKER_INFLUXDB_INIT_BUCKET=public
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=base64:yourtoken=
+
+    volumes:
+      - ./Volumes/influx/var:/var/lib/influxdb2
+      - ./Volumes/influx/etc:/etc/influxdb2
+
+  # REDIS
+  redis:
+    container_name: REDIS
+    image: redis:alpine
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./Volumes/redis:/data
+
+  # MAILHOG
+  mailhog:
+    container_name: MAILHOG
+    build:
+      context: ./Apps/MailHog
+    restart: always
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
+  # AVATART
+  avatart:
+    container_name: AVATART
+    build:
+      context: ./Apps/Avatart
+    ports:
+      - 3200:3000
+
+  # NGINX
+  nginx:
+    image: 'jc21/nginx-proxy-manager:latest'
+    container_name: NGINX
+    restart: always
+    ports:
+      - '80:80' # Public HTTP Port
+      - '444:443' # Public HTTPS Port
+      - '81:81' # Admin Web Port
+    volumes:
+      - ./Volumes/nginx/data:/data
+      - ./Volumes/nginx/letsencrypt:/etc/letsencrypt
+
+  # n8n
+  n8n:
+    image: n8nio/n8n
+    restart: always
+    container_name: N8N
+    ports:
+      - "5678:5678"
+    environment:
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=127.0.0.1
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=n8n
+      - DB_POSTGRESDB_USER=alessio
+      - DB_POSTGRESDB_PASSWORD=PostgresPass12345!!
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=admin
+      - N8N_BASIC_AUTH_PASSWORD=adminpassword12345
+      - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=false
+      - N8N_SECURE_COOKIE=false
+    depends_on:
+      - postgres
+    volumes:
+      - ./Volumes/n8n/data:/home/node/n8n
